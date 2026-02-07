@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 
+from src.api.v1.router import api_v1_router
 from src.core.database import create_db_tables, drop_db_tables
 from src.core.logging import setup_logging, get_logger
 import structlog
@@ -20,7 +21,7 @@ async def lifespan(app: FastAPI):
     await event_bus.shutdown(wait=True)
 
 
-app = FastAPI(title="NanoStock", lifespan=lifespan)
+app = FastAPI(title="NanoStock", lifespan=lifespan, routes=[api_v1_router.routes])
 
 
 @app.middleware("http")

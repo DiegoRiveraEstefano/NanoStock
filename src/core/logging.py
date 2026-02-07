@@ -2,6 +2,9 @@ import logging
 import sys
 import structlog
 from typing import Any
+
+from structlog import BoundLogger
+
 from src.core.config import settings
 
 def setup_logging():
@@ -30,6 +33,6 @@ def setup_logging():
         cache_logger_on_first_use=True,
     )
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: str) -> BoundLogger:
     """Retorna un logger con el nombre del módulo pre-inyectado."""
     return structlog.get_logger().bind(module=name)
