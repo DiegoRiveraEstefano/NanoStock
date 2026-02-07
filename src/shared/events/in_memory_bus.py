@@ -1,5 +1,7 @@
 import asyncio
-from typing import Callable
+from typing import Callable, AsyncGenerator, Annotated
+
+from fastapi import Depends
 
 from src.core.logging import get_logger
 from src.shared.events.base import EventBus, DomainEvent
@@ -85,3 +87,10 @@ class InMemoryEventBus(EventBus):
             await callback(**kwargs)
         except Exception as e:
             logger.exception("dispatch event with exception", exc_info=e)
+
+
+event_bus = InMemoryEventBus()
+async def get_event_bus() -> AsyncGenerator[EventBus, None]:
+    yield event_bus
+
+InMemoryBusDependency = Annotated[EventBus, Depends(get_event_bus)]

@@ -6,15 +6,18 @@ from fastapi import FastAPI, Request
 from src.core.database import create_db_tables, drop_db_tables
 from src.core.logging import setup_logging, get_logger
 import structlog
-from src.modules.iam.domains.models.user import User as IAMUser
+from src.shared.events.in_memory_bus import event_bus
+
 setup_logging()
 logger = get_logger("main")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_tables()
     yield
     await drop_db_tables()
+    await event_bus.shutdown(wait=True)
 
 
 app = FastAPI(title="NanoStock", lifespan=lifespan)
