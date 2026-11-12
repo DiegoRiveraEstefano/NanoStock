@@ -22,9 +22,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Desactivado para APIs REST de control doméstico
+            .csrf(csrf -> csrf.disable()) // Desactivado para APIs REST y control doméstico
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/", "/dashboard", "/login", "/register").permitAll()
+                .requestMatchers("/catalog/**", "/inventory/**", "/purchases/**", "/recipes/**", "/analytics/**", "/notifications/**", "/data/**").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
