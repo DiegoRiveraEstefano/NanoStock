@@ -37,7 +37,7 @@ class DatabaseMigrationAndPersistenceTest {
     void flywayMigrationsShouldApplySuccessfully() {
         var appliedMigrations = flyway.info().applied();
         assertThat(appliedMigrations).isNotEmpty();
-        assertThat(appliedMigrations.length).isGreaterThanOrEqualTo(8);
+        assertThat(appliedMigrations.length).isGreaterThanOrEqualTo(9);
 
         for (var migration : appliedMigrations) {
             assertThat(migration.getState().isApplied()).isTrue();
