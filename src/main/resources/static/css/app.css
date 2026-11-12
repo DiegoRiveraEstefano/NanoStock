@@ -1,0 +1,175 @@
+/* NanoStock - Estilos Globales & Personalizaciones Bulma */
+
+:root {
+    --nano-primary: #00b894;
+    --nano-primary-hover: #00a383;
+    --nano-primary-light: #e8f8f5;
+    --nano-warning: #fdcb6e;
+    --nano-danger: #ff7675;
+    --nano-info: #0984e3;
+    --nano-dark: #2d3436;
+    --nano-bg: #f8f9fa;
+    --nano-sidebar-width: 250px;
+}
+
+body {
+    background-color: var(--nano-bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Layout Principal */
+.main-wrapper {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 3.5rem);
+}
+
+.sidebar-wrapper {
+    width: var(--nano-sidebar-width);
+    background: #ffffff;
+    border-right: 1px solid #eef2f5;
+    padding: 1.5rem 1rem;
+    flex-shrink: 0;
+}
+
+.content-wrapper {
+    flex: 1;
+    padding: 1.75rem 2rem;
+    overflow-y: auto;
+}
+
+/* Navbar Personalizado */
+.navbar.is-nano {
+    background-color: #ffffff;
+    border-bottom: 1px solid #eef2f5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.navbar-brand .brand-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--nano-primary);
+    letter-spacing: -0.5px;
+}
+
+/* Sidebar Menu */
+.sidebar-menu .menu-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8395a7;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-menu .menu-list a {
+    border-radius: 6px;
+    padding: 0.6rem 0.85rem;
+    color: #4b6584;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar-menu .menu-list a:hover {
+    background-color: var(--nano-primary-light);
+    color: var(--nano-primary);
+}
+
+.sidebar-menu .menu-list a.is-active {
+    background-color: var(--nano-primary);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* KPI / Stat Cards */
+.nano-stat-card {
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    padding: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nano-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+}
+
+.nano-stat-card .stat-label {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.nano-stat-card .stat-value {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--nano-dark);
+    margin: 0.25rem 0;
+}
+
+/* FEFO Badges de Caducidad */
+.badge-fefo-critical {
+    background-color: #ff7675;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.badge-fefo-warning {
+    background-color: #ffeaa7;
+    color: #d63031;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.badge-fefo-good {
+    background-color: #55efc4;
+    color: #00b894;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+/* Notificaciones Toast Container */
+#nano-toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+#nano-toast-container .notification {
+    pointer-events: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    max-width: 420px;
+    margin-bottom: 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
