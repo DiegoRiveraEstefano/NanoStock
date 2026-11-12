@@ -4,20 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
@@ -41,6 +37,7 @@ import cl.diego.NanoStock.catalog.repository.BrandRepository;
 import cl.diego.NanoStock.catalog.repository.CategoryRepository;
 import cl.diego.NanoStock.catalog.repository.ProductRepository;
 import cl.diego.NanoStock.catalog.service.ProductCatalogService;
+import cl.diego.NanoStock.testutil.DatabaseCleanupHelper;
 
 @SpringBootTest
 @RecordApplicationEvents
@@ -64,6 +61,9 @@ class ProductCatalogIntegrationTest {
     @Autowired
     private ApplicationEvents applicationEvents;
 
+    @Autowired
+    private DatabaseCleanupHelper cleanupHelper;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -73,9 +73,7 @@ class ProductCatalogIntegrationTest {
             .webAppContextSetup(context)
             .apply(springSecurity())
             .build();
-        productRepository.deleteAll();
-        categoryRepository.deleteAll();
-        brandRepository.deleteAll();
+        cleanupHelper.cleanAll();
     }
 
     @Test

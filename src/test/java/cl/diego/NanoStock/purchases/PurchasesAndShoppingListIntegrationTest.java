@@ -51,6 +51,7 @@ import cl.diego.NanoStock.purchases.repository.StoreRepository;
 import cl.diego.NanoStock.purchases.service.PurchaseService;
 import cl.diego.NanoStock.purchases.service.ShoppingListService;
 import cl.diego.NanoStock.purchases.service.StoreService;
+import cl.diego.NanoStock.testutil.DatabaseCleanupHelper;
 
 @SpringBootTest
 @RecordApplicationEvents
@@ -104,6 +105,9 @@ class PurchasesAndShoppingListIntegrationTest {
     @Autowired
     private ApplicationEvents applicationEvents;
 
+    @Autowired
+    private DatabaseCleanupHelper cleanupHelper;
+
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -113,15 +117,7 @@ class PurchasesAndShoppingListIntegrationTest {
             .apply(springSecurity())
             .build();
 
-        shoppingListItemRepository.deleteAll();
-        shoppingListRepository.deleteAll();
-        receiptItemRepository.deleteAll();
-        receiptRepository.deleteAll();
-        movementRepository.deleteAll();
-        stockBatchRepository.deleteAll();
-        locationRepository.deleteAll();
-        storeRepository.deleteAll();
-        productRepository.deleteAll();
+        cleanupHelper.cleanAll();
     }
 
     @Test

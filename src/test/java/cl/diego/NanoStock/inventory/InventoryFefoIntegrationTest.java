@@ -44,6 +44,7 @@ import cl.diego.NanoStock.inventory.repository.InventoryMovementRepository;
 import cl.diego.NanoStock.inventory.repository.LocationRepository;
 import cl.diego.NanoStock.inventory.repository.StockBatchRepository;
 import cl.diego.NanoStock.inventory.service.InventoryService;
+import cl.diego.NanoStock.testutil.DatabaseCleanupHelper;
 
 @SpringBootTest
 @RecordApplicationEvents
@@ -73,6 +74,9 @@ class InventoryFefoIntegrationTest {
     @Autowired
     private ApplicationEvents applicationEvents;
 
+    @Autowired
+    private DatabaseCleanupHelper cleanupHelper;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private MockMvc mockMvc;
 
@@ -83,10 +87,7 @@ class InventoryFefoIntegrationTest {
             .apply(springSecurity())
             .build();
 
-        movementRepository.deleteAll();
-        stockBatchRepository.deleteAll();
-        locationRepository.deleteAll();
-        productRepository.deleteAll();
+        cleanupHelper.cleanAll();
     }
 
     @Test

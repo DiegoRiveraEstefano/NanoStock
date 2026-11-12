@@ -37,7 +37,7 @@ class DatabaseMigrationAndPersistenceTest {
     void flywayMigrationsShouldApplySuccessfully() {
         var appliedMigrations = flyway.info().applied();
         assertThat(appliedMigrations).isNotEmpty();
-        assertThat(appliedMigrations.length).isGreaterThanOrEqualTo(7);
+        assertThat(appliedMigrations.length).isGreaterThanOrEqualTo(8);
 
         for (var migration : appliedMigrations) {
             assertThat(migration.getState().isApplied()).isTrue();
@@ -74,6 +74,7 @@ class DatabaseMigrationAndPersistenceTest {
             "nanostock_product_consumption_metrics",
             "nanostock_recipes",
             "nanostock_recipe_ingredients",
+            "nanostock_notifications",
             "event_publication"
         );
     }
@@ -94,5 +95,7 @@ class DatabaseMigrationAndPersistenceTest {
         Optional<Product> found = productRepository.findByBarCode("7801234567890");
         assertThat(found).isPresent();
         assertThat(found.get().getName()).isEqualTo("Leche Entera 1L");
+
+        productRepository.delete(saved);
     }
 }
