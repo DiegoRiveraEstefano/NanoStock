@@ -11,7 +11,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(27)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -29,6 +29,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
+	implementation("org.hibernate.orm:hibernate-community-dialects")
 	implementation("org.springframework.boot:spring-boot-starter-integration")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
@@ -48,13 +49,13 @@ dependencies {
 	implementation("org.springframework.security:spring-security-messaging")
 	implementation("org.springframework.security:spring-security-webauthn")
 	implementation("org.springframework.shell:spring-shell-starter")
-	compileOnly("org.projectlombok:lombok")
+	compileOnly("org.projectlombok:lombok:1.18.46")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("io.micrometer:micrometer-registry-otlp")
 	runtimeOnly("org.springframework.modulith:spring-modulith-runtime")
-	runtimeOnly("org.xerial:sqlite-jdbc")
-	annotationProcessor("org.projectlombok:lombok")
+	implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+	annotationProcessor("org.projectlombok:lombok:1.18.46")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-batch-test")
@@ -73,9 +74,10 @@ dependencies {
 	testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 	testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
 	testImplementation("org.springframework.shell:spring-shell-starter-test")
-	testCompileOnly("org.projectlombok:lombok")
+	testImplementation("com.h2database:h2")
+	testCompileOnly("org.projectlombok:lombok:1.18.46")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	testAnnotationProcessor("org.projectlombok:lombok")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.46")
 }
 
 dependencyManagement {
