@@ -16,6 +16,10 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
 
     List<InventoryMovement> findByMovementTypeOrderByCreatedAtDesc(MovementType movementType);
 
+    List<InventoryMovement> findByMovementTypeAndCreatedAtBetweenOrderByCreatedAtDesc(
+        MovementType movementType, LocalDateTime start, LocalDateTime end
+    );
+
     List<InventoryMovement> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime start, LocalDateTime end);
 
     List<InventoryMovement> findByProductIdAndCreatedAtBetweenOrderByCreatedAtDesc(
