@@ -23,6 +23,11 @@
             </a>
         </li>
         <li>
+            <a href="/inventory/locations" class="${active.equals("locations") ? "is-active" : ""}">
+                <span>📍</span> <span>Ubicaciones</span>
+            </a>
+        </li>
+        <li>
             <a href="/inventory/movements" class="${active.equals("movements") ? "is-active" : ""}">
                 <span>📜</span> <span>Bitácora de Movimientos</span>
             </a>
