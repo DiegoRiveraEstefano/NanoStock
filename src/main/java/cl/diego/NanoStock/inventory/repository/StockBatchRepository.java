@@ -26,10 +26,19 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long>, J
 
     List<StockBatch> findByLocationIdAndQuantityGreaterThan(Long locationId, Double minQuantity);
 
+    long countByLocationIdAndQuantityGreaterThan(Long locationId, Double minQuantity);
+
+    boolean existsByLocationId(Long locationId);
+
+    void deleteByLocationId(Long locationId);
+
     List<StockBatch> findByQuantityGreaterThanAndExpirationDateLessThanEqualOrderByExpirationDateAsc(
         Double minQuantity, LocalDate maxDate
     );
 
     @Query("SELECT COALESCE(SUM(b.quantity), 0.0) FROM StockBatch b WHERE b.product.id = :productId AND b.quantity > 0")
     Double sumQuantityByProductId(@Param("productId") Long productId);
+
+    @Query("SELECT COALESCE(SUM(b.quantity), 0.0) FROM StockBatch b WHERE b.location.id = :locationId AND b.quantity > 0")
+    Double sumQuantityByLocationId(@Param("locationId") Long locationId);
 }

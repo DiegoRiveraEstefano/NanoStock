@@ -2,7 +2,6 @@ package cl.diego.NanoStock.inventory.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,14 +52,14 @@ public class InventoryService {
     @Transactional
     public LocationResponse createLocation(LocationRequest request) {
         String cleanName = request.getName().trim();
-        if (locationRepository.existsByName(cleanName)) {
+        if (locationRepository.existsByNameIgnoreCase(cleanName)) {
             throw new IllegalArgumentException("Ya existe una ubicación con el nombre: " + cleanName);
         }
 
         Location location = Location.builder()
             .name(cleanName)
             .storageType(request.getStorageType() != null ? request.getStorageType() : StorageType.AMBIENT)
-            .description(request.getDescription())
+            .description(request.getDescription() != null ? request.getDescription().trim() : null)
             .build();
 
         return toLocationResponse(locationRepository.save(location));
@@ -76,6 +75,58 @@ public class InventoryService {
     @Transactional(readOnly = true)
     public Optional<LocationResponse> getLocationById(Long id) {
         return locationRepository.findById(id).map(this::toLocationResponse);
+    }
+
+    @Transactional
+    public LocationResponse updateLocation(Long id, LocationRequest request) {
+        Location location = locationRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Ubicación no encontrada con ID: " + id));
+
+        String cleanName = request.getName().trim();
+        if (locationRepository.existsByNameIgnoreCaseAndIdNot(cleanName, id)) {
+            throw new IllegalArgumentException("Ya existe otra ubicación con el nombre: " + cleanName);
+        }
+
+        location.setName(cleanName);
+        if (request.getStorageType() != null) {
+            location.setStorageType(request.getStorageType());
+        }
+        location.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
+
+        return toLocationResponse(locationRepository.save(location));
+    }
+
+    @Transactional
+    public void deleteLocation(Long id) {
+        Location location = locationRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Ubicación no encontrada con ID: " + id));
+
+        long activeBatches = stockBatchRepository.countByLocationIdAndQuantityGreaterThan(id, 0.0);
+        if (activeBatches > 0) {
+            throw new IllegalArgumentException(
+                "No se puede eliminar la ubicación '" + location.getName()
+                    + "' porque aún tiene " + activeBatches + " lote(s) con stock activo.");
+        }
+
+        // Desvincular movimientos históricos y limpiar lotes ya agotados (quantity == 0) para respetar la FK
+        movementRepository.detachBatchesByLocationId(id);
+        movementRepository.detachLocationById(id);
+        if (stockBatchRepository.existsByLocationId(id)) {
+            stockBatchRepository.deleteByLocationId(id);
+        }
+
+        locationRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<StockBatchResponse> getActiveBatchesByLocation(Long locationId) {
+        if (!locationRepository.existsById(locationId)) {
+            throw new IllegalArgumentException("Ubicación no encontrada con ID: " + locationId);
+        }
+
+        return stockBatchRepository.findByLocationIdAndQuantityGreaterThan(locationId, 0.0).stream()
+            .map(this::toStockBatchResponse)
+            .toList();
     }
 
     // --- Entradas de Stock (Lotes) ---
@@ -360,11 +411,16 @@ public class InventoryService {
     }
 
     private LocationResponse toLocationResponse(Location location) {
+        long activeBatches = stockBatchRepository.countByLocationIdAndQuantityGreaterThan(location.getId(), 0.0);
+        Double totalQty = stockBatchRepository.sumQuantityByLocationId(location.getId());
+
         return LocationResponse.builder()
             .id(location.getId())
             .name(location.getName())
             .storageType(location.getStorageType())
             .description(location.getDescription())
+            .activeBatchesCount(activeBatches)
+            .totalQuantity(totalQty != null ? totalQty : 0.0)
             .createdAt(location.getCreatedAt())
             .build();
     }

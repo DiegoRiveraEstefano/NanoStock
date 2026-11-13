@@ -18,5 +18,7 @@ public class LocationResponse {
     private String name;
     private StorageType storageType;
     private String description;
+    private long activeBatchesCount;
+    private double totalQuantity;
     private LocalDateTime createdAt;
 }

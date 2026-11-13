@@ -15,4 +15,8 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     Optional<Location> findByNameIgnoreCase(String name);
 
     boolean existsByName(String name);
+
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }
