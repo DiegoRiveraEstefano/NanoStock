@@ -24,6 +24,9 @@
             </div>
             <div class="level-right">
                 <div class="buttons">
+                    <a href="/inventory/locations" class="button is-light">
+                        <span>📍</span> <span class="ml-1">Ubicaciones</span>
+                    </a>
                     <button class="button is-primary" onclick="document.getElementById('modal-entry').open()">
                         <span>➕</span> <span class="ml-1">Ingresar Lote de Stock</span>
                     </button>
@@ -38,7 +41,7 @@
         </div>
 
         @if(flashMessage != null)
-            @template.components.alert(message = flashMessage, type = flashType, icon = "✅")
+            @template.components.alert(message = flashMessage, type = flashType, icon = flashType.equals("is-danger") ? "⚠️" : "✅")
         @endif
 
         <!-- Alertas de Caducidad Próxima (FEFO) -->
@@ -195,6 +198,9 @@
                                     </select>
                                 </div>
                             </div>
+                            @if(locations.isEmpty())
+                                <p class="help is-danger">No hay ubicaciones registradas. <a href="/inventory/locations">Crear una ubicación</a>.</p>
+                            @endif
                         </div>
                     </div>
 

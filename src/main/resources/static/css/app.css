@@ -142,6 +142,58 @@ body {
     font-size: 0.75rem;
 }
 
+/* Public / Landing & Portfolio Styles */
+.h-100 {
+    height: 100%;
+}
+
+.hero-nano {
+    background: linear-gradient(135deg, #ffffff 0%, #e8f8f5 100%);
+    border-bottom: 1px solid #e2ece9;
+}
+
+.feature-card {
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+}
+
+.creator-avatar {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--nano-primary) 0%, #0984e3 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    box-shadow: 0 10px 25px rgba(0, 184, 148, 0.25);
+}
+
+.creator-avatar-img {
+    width: 128px;
+    height: 128px;
+    object-fit: cover;
+    border: 4px solid var(--nano-primary-light);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.social-pill {
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: transform 0.15s ease;
+}
+
+.social-pill:hover {
+    transform: translateY(-2px);
+}
+
 /* Notificaciones Toast Container */
 #nano-toast-container {
     position: fixed;
