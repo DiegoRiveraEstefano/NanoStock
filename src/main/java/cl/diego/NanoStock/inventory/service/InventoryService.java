@@ -22,6 +22,7 @@ import cl.diego.NanoStock.inventory.dto.ProductStockOverview;
 import cl.diego.NanoStock.inventory.dto.RegisterWasteRequest;
 import cl.diego.NanoStock.inventory.dto.StockAdjustmentRequest;
 import cl.diego.NanoStock.inventory.dto.StockBatchResponse;
+import cl.diego.NanoStock.inventory.dto.TransferBatchRequest;
 import cl.diego.NanoStock.inventory.event.StockConsumedEvent;
 import cl.diego.NanoStock.inventory.event.StockLevelChangedEvent;
 import cl.diego.NanoStock.inventory.event.StockWastedEvent;
@@ -339,6 +340,60 @@ public class InventoryService {
         }
 
         return getProductStockOverview(product.getId());
+    }
+
+    // --- Transferencia de Lote entre Ubicaciones ---
+
+    @Transactional
+    public StockBatchResponse transferBatch(TransferBatchRequest request, String username) {
+        StockBatch sourceBatch = stockBatchRepository.findById(request.getBatchId())
+            .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado con ID: " + request.getBatchId()));
+
+        Location targetLocation = locationRepository.findById(request.getTargetLocationId())
+            .orElseThrow(() -> new IllegalArgumentException("Ubicación de destino no encontrada con ID: " + request.getTargetLocationId()));
+
+        if (sourceBatch.getLocation().getId().equals(targetLocation.getId())) {
+            throw new IllegalArgumentException("La ubicación de destino debe ser distinta a la ubicación actual del lote.");
+        }
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("La cantidad a trasladar debe ser mayor a cero.");
+        }
+        if (sourceBatch.getQuantity() < request.getQuantity()) {
+            throw new IllegalArgumentException(String.format(
+                "La cantidad a trasladar (%.2f) supera el stock disponible en el lote (%.2f).",
+                request.getQuantity(), sourceBatch.getQuantity()));
+        }
+
+        User user = findUserOrNull(username);
+        String sourceName = sourceBatch.getLocation().getName();
+        sourceBatch.setQuantity(sourceBatch.getQuantity() - request.getQuantity());
+        stockBatchRepository.save(sourceBatch);
+
+        StockBatch targetBatch = stockBatchRepository.save(StockBatch.builder()
+            .product(sourceBatch.getProduct())
+            .location(targetLocation)
+            .quantity(request.getQuantity())
+            .expirationDate(sourceBatch.getExpirationDate())
+            .sealedStatus(sourceBatch.getSealedStatus())
+            .batchCode(sourceBatch.getBatchCode())
+            .build());
+
+        String baseNotes = "Traslado desde '" + sourceName + "' hacia '" + targetLocation.getName() + "'";
+        String fullNotes = (request.getNotes() != null && !request.getNotes().isBlank())
+            ? baseNotes + " - " + request.getNotes().trim()
+            : baseNotes;
+
+        movementRepository.save(InventoryMovement.builder()
+            .product(sourceBatch.getProduct())
+            .batch(targetBatch)
+            .location(targetLocation)
+            .movementType(MovementType.TRANSFER)
+            .quantity(request.getQuantity())
+            .notes(fullNotes)
+            .user(user)
+            .build());
+
+        return toStockBatchResponse(targetBatch);
     }
 
     // --- Consultas y Métricas de Inventario ---

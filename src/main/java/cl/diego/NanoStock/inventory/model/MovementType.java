@@ -4,7 +4,8 @@ public enum MovementType {
     ENTRY("Entrada / Compra"),
     CONSUMPTION("Consumo Doméstico"),
     WASTE("Merma / Desperdicio"),
-    ADJUSTMENT("Ajuste de Auditoría");
+    ADJUSTMENT("Ajuste de Auditoría"),
+    TRANSFER("Transferencia de Ubicación");
 
     private final String displayName;
 
