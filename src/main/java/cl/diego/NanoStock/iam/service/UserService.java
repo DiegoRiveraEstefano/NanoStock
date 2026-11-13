@@ -24,24 +24,22 @@ public class UserService {
 
     @Transactional
     public UserResponseDto registerUser(UserRegistrationRequestDto dto) {
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new IllegalArgumentException("El nombre de usuario '" + dto.getUsername() + "' ya está en uso");
+        String cleanUsername = dto.getUsername().trim();
+        String cleanEmail = dto.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByUsername(cleanUsername)) {
+            throw new IllegalArgumentException("El nombre de usuario '" + cleanUsername + "' ya está en uso");
         }
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("El correo '" + dto.getEmail() + "' ya está registrado");
+        if (userRepository.existsByEmail(cleanEmail)) {
+            throw new IllegalArgumentException("El correo '" + cleanEmail + "' ya está registrado");
         }
 
-        // Si es el primer usuario del hogar, se le asigna rol ADMIN automáticamente
-        Role assignedRole;
-        if (userRepository.count() == 0) {
-            assignedRole = Role.ROLE_ADMIN;
-        } else {
-            assignedRole = dto.getRole() != null ? dto.getRole() : Role.ROLE_MEMBER;
-        }
+        // Solo el primer usuario del hogar recibe rol ADMIN; el auto-registro público siempre recibe MEMBER
+        Role assignedRole = (userRepository.count() == 0) ? Role.ROLE_ADMIN : Role.ROLE_MEMBER;
 
         User user = User.builder()
-            .username(dto.getUsername().trim())
-            .email(dto.getEmail().trim().toLowerCase())
+            .username(cleanUsername)
+            .email(cleanEmail)
             .hashedPassword(passwordEncoder.encode(dto.getPassword()))
             .role(assignedRole)
             .enabled(true)
@@ -79,6 +77,35 @@ public class UserService {
 
         user.setHashedPassword(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
+    }
+
+    @Transactional
+    public UserResponseDto updateUserRole(Long userId, Role newRole, String actingUsername) {
+        if (newRole == null) {
+            throw new IllegalArgumentException("El rol es obligatorio");
+        }
+        User target = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + userId));
+
+        if (target.getUsername().equals(actingUsername) && newRole != Role.ROLE_ADMIN) {
+            throw new IllegalArgumentException("No puedes quitarte el rol de administrador a ti mismo");
+        }
+
+        target.setRole(newRole);
+        return toResponseDto(userRepository.save(target));
+    }
+
+    @Transactional
+    public UserResponseDto toggleUserEnabled(Long userId, String actingUsername) {
+        User target = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + userId));
+
+        if (target.getUsername().equals(actingUsername)) {
+            throw new IllegalArgumentException("No puedes desactivar tu propia cuenta");
+        }
+
+        target.setEnabled(!target.isEnabled());
+        return toResponseDto(userRepository.save(target));
     }
 
     public UserResponseDto toResponseDto(User user) {
