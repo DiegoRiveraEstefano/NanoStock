@@ -3,6 +3,11 @@ package cl.diego.NanoStock.inventory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
@@ -130,6 +136,63 @@ class InventoryFefoIntegrationTest {
             .filter(e -> e.productId().equals(leche.getId()) && e.newTotalQuantity().equals(4.0))
             .count();
         assertThat(levelEvents).isEqualTo(1);
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @DisplayName("API REST de ubicaciones debe soportar actualizar, consultar lotes y eliminar cuando está vacía")
+    void shouldUpdateListBatchesAndDeleteLocationViaRest() throws Exception {
+        LocationResponse loc = inventoryService.createLocation(LocationRequest.builder()
+            .name("Cava Cocina")
+            .storageType(StorageType.AMBIENT)
+            .description("Inicial")
+            .build());
+
+        LocationRequest updateReq = LocationRequest.builder()
+            .name("Despensa Renovada")
+            .storageType(StorageType.REFRIGERATED)
+            .description("Estante medio")
+            .build();
+
+        mockMvc.perform(put("/api/inventory/locations/" + loc.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateReq)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("Despensa Renovada"))
+            .andExpect(jsonPath("$.storageType").value("REFRIGERATED"));
+
+        ProductResponse queso = catalogService.createProduct(CreateProductRequest.builder()
+            .name("Queso Mantecoso")
+            .sku("QUE-MAN-500")
+            .barCode("7801231231234")
+            .build());
+
+        inventoryService.addStockBatch(AddStockBatchRequest.builder()
+            .productId(queso.getId())
+            .locationId(loc.getId())
+            .quantity(2.0)
+            .build(), "admin");
+
+        mockMvc.perform(get("/api/inventory/locations/" + loc.getId() + "/batches"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].productName").value("Queso Mantecoso"))
+            .andExpect(jsonPath("$[0].quantity").value(2.0));
+
+        // Con stock activo no debe permitir eliminar
+        mockMvc.perform(delete("/api/inventory/locations/" + loc.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("lote(s) con stock activo")));
+
+        // Consumir el stock y eliminar
+        inventoryService.consumeStock(ConsumeStockRequest.builder()
+            .productId(queso.getId())
+            .quantity(2.0)
+            .build(), "admin");
+
+        mockMvc.perform(delete("/api/inventory/locations/" + loc.getId()))
+            .andExpect(status().isNoContent());
+
+        assertThat(locationRepository.findById(loc.getId())).isEmpty();
     }
 
     @Test

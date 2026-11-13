@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -28,6 +29,7 @@ import cl.diego.NanoStock.notifications.service.NotificationService;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@WithMockUser(username = "diego", roles = {"MEMBER"})
 class AnalyticsAndDataViewControllerIntegrationTest {
 
     @Autowired

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -25,14 +26,12 @@ import cl.diego.NanoStock.catalog.dto.ProductResponse;
 import cl.diego.NanoStock.catalog.model.UnitOfMeasure;
 import cl.diego.NanoStock.catalog.service.ProductCatalogService;
 import cl.diego.NanoStock.purchases.dto.AddShoppingItemRequest;
-import cl.diego.NanoStock.purchases.dto.StoreRequest;
-import cl.diego.NanoStock.purchases.dto.StoreResponse;
-import cl.diego.NanoStock.purchases.model.StoreType;
 import cl.diego.NanoStock.purchases.service.ShoppingListService;
 import cl.diego.NanoStock.purchases.service.StoreService;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@WithMockUser(username = "diego", roles = {"MEMBER"})
 class PurchasesViewControllerIntegrationTest {
 
     @Autowired

@@ -13,17 +13,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import cl.diego.NanoStock.iam.dto.ChangePasswordRequestDto;
 import cl.diego.NanoStock.iam.dto.UserLoginRequestDto;
 import cl.diego.NanoStock.iam.dto.UserRegistrationRequestDto;
-import cl.diego.NanoStock.iam.dto.UserResponseDto;
 import cl.diego.NanoStock.iam.model.Role;
 import cl.diego.NanoStock.iam.repository.UserRepository;
 import cl.diego.NanoStock.iam.service.UserService;
@@ -73,7 +73,7 @@ class UserAuthenticationIntegrationTest {
     }
 
     @Test
-    @DisplayName("El segundo usuario registrado debe recibir por defecto el rol MEMBER")
+    @DisplayName("El segundo usuario registrado debe recibir por defecto el rol MEMBER aunque envíe ROLE_ADMIN")
     void secondUserShouldBeMember() throws Exception {
         // Registro del primer usuario (Admin)
         userService.registerUser(UserRegistrationRequestDto.builder()
@@ -82,11 +82,12 @@ class UserAuthenticationIntegrationTest {
             .password("clave123")
             .build());
 
-        // Registro del segundo usuario
+        // Registro del segundo usuario intentando forzar ROLE_ADMIN
         UserRegistrationRequestDto hijoDto = UserRegistrationRequestDto.builder()
             .username("hijo_juan")
             .email("juan@familia.cl")
             .password("clave123")
+            .role(Role.ROLE_ADMIN)
             .build();
 
         mockMvc.perform(post("/api/auth/register")
@@ -120,7 +121,7 @@ class UserAuthenticationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Debe permitir login exitoso tanto por username como por email")
+    @DisplayName("Debe permitir login exitoso tanto por username como por email y persistir sesión HTTP")
     void shouldLoginWithUsernameOrEmail() throws Exception {
         userService.registerUser(UserRegistrationRequestDto.builder()
             .username("diego")
@@ -128,15 +129,23 @@ class UserAuthenticationIntegrationTest {
             .password("miContrasenaSegura")
             .build());
 
-        // 1. Login con username
+        // 1. Login con username y verificación de sesión persistente
         UserLoginRequestDto loginByUsername = UserLoginRequestDto.builder()
             .usernameOrEmail("diego")
             .password("miContrasenaSegura")
             .build();
 
-        mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginByUsername)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username").value("diego"))
+            .andReturn();
+
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        assertThat(session).isNotNull();
+
+        mockMvc.perform(get("/api/auth/me").session(session))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.username").value("diego"));
 
