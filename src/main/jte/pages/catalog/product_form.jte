@@ -10,6 +10,10 @@
 @param CreateProductRequest form
 @param Long productId = null
 @param String errorMessage = null
+@param String flashMessage = null
+@param String flashType = "is-success"
+
+!{String currentPath = productId == null ? "/catalog/new" : "/catalog/" + productId + "/edit";}
 
 @template.layouts.app(
     title = productId == null ? "Nuevo Producto" : "Editar Producto",
@@ -36,6 +40,10 @@
 
         @if(errorMessage != null)
             @template.components.alert(message = errorMessage, type = "is-danger", icon = "⚠️")
+        @endif
+
+        @if(flashMessage != null)
+            @template.components.alert(message = flashMessage, type = flashType, icon = flashType.equals("is-danger") ? "⚠️" : "✅")
         @endif
 
         <div class="box">
@@ -91,16 +99,21 @@
                     <div class="column is-4">
                         <div class="field">
                             <label class="label">Categoría</label>
-                            <div class="control">
-                                <div class="select is-fullwidth">
-                                    <select name="categoryId">
-                                        <option value="">-- Sin Categoría --</option>
-                                        @for(CategoryResponse cat : categories)
-                                            <option value="${cat.getId()}" selected="${form.getCategoryId() != null && form.getCategoryId().equals(cat.getId())}">
-                                                ${cat.getName()}
-                                            </option>
-                                        @endfor
-                                    </select>
+                            <div class="field has-addons">
+                                <div class="control is-expanded">
+                                    <div class="select is-fullwidth">
+                                        <select name="categoryId">
+                                            <option value="">-- Sin Categoría --</option>
+                                            @for(CategoryResponse cat : categories)
+                                                <option value="${cat.getId()}" selected="${form.getCategoryId() != null && form.getCategoryId().equals(cat.getId())}">
+                                                    ${cat.getName()}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control">
+                                    <button type="button" class="button is-light" title="Crear nueva categoría" onclick="document.getElementById('modal-quick-category').open()">+</button>
                                 </div>
                             </div>
                         </div>
@@ -110,16 +123,21 @@
                     <div class="column is-4">
                         <div class="field">
                             <label class="label">Marca</label>
-                            <div class="control">
-                                <div class="select is-fullwidth">
-                                    <select name="brandId">
-                                        <option value="">-- Genérica / Sin Marca --</option>
-                                        @for(BrandResponse brand : brands)
-                                            <option value="${brand.getId()}" selected="${form.getBrandId() != null && form.getBrandId().equals(brand.getId())}">
-                                                ${brand.getName()}
-                                            </option>
-                                        @endfor
-                                    </select>
+                            <div class="field has-addons">
+                                <div class="control is-expanded">
+                                    <div class="select is-fullwidth">
+                                        <select name="brandId">
+                                            <option value="">-- Genérica / Sin Marca --</option>
+                                            @for(BrandResponse brand : brands)
+                                                <option value="${brand.getId()}" selected="${form.getBrandId() != null && form.getBrandId().equals(brand.getId())}">
+                                                    ${brand.getName()}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control">
+                                    <button type="button" class="button is-light" title="Crear nueva marca" onclick="document.getElementById('modal-quick-brand').open()">+</button>
                                 </div>
                             </div>
                         </div>
@@ -194,6 +212,40 @@
                 </div>
             </form>
         </div>
+
+        <!-- MODAL: Nueva Categoría Rápida -->
+        <nano-modal id="modal-quick-category" title="Nueva Categoría">
+            <form id="form-quick-category" action="/catalog/categories" method="post">
+                <input type="hidden" name="returnTo" value="${currentPath}">
+                <div class="field">
+                    <label class="label">Nombre <span class="has-text-danger">*</span></label>
+                    <input class="input" type="text" name="name" placeholder="Ej. Lácteos" required>
+                </div>
+                <div class="field">
+                    <label class="label">Descripción</label>
+                    <input class="input" type="text" name="description" placeholder="Opcional">
+                </div>
+            </form>
+            <div slot="footer">
+                <button type="submit" form="form-quick-category" class="button is-primary">Crear Categoría</button>
+                <button type="button" class="button" data-close>Cancelar</button>
+            </div>
+        </nano-modal>
+
+        <!-- MODAL: Nueva Marca Rápida -->
+        <nano-modal id="modal-quick-brand" title="Nueva Marca">
+            <form id="form-quick-brand" action="/catalog/brands" method="post">
+                <input type="hidden" name="returnTo" value="${currentPath}">
+                <div class="field">
+                    <label class="label">Nombre <span class="has-text-danger">*</span></label>
+                    <input class="input" type="text" name="name" placeholder="Ej. Soprole" required>
+                </div>
+            </form>
+            <div slot="footer">
+                <button type="submit" form="form-quick-brand" class="button is-primary">Crear Marca</button>
+                <button type="button" class="button" data-close>Cancelar</button>
+            </div>
+        </nano-modal>
     `,
     scripts = @`
         <script type="module" src="/js/components/nano-barcode-scanner.js"></script>

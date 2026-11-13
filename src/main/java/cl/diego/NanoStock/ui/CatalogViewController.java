@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import cl.diego.NanoStock.catalog.dto.BrandRequest;
+import cl.diego.NanoStock.catalog.dto.CategoryRequest;
 import cl.diego.NanoStock.catalog.dto.CreateProductRequest;
 import cl.diego.NanoStock.catalog.dto.ProductResponse;
 import cl.diego.NanoStock.catalog.dto.UpdateProductRequest;
@@ -52,10 +54,16 @@ public class CatalogViewController {
 
         model.addAttribute("products", products);
         model.addAttribute("categories", catalogService.getAllCategories());
+        model.addAttribute("brands", catalogService.getAllBrands());
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("query", query);
-        model.addAttribute("flashMessage", flashMessage);
-        model.addAttribute("flashType", flashType);
+        if (flashMessage != null) {
+            model.addAttribute("flashMessage", flashMessage);
+            model.addAttribute("flashType", flashType);
+        } else if (!model.containsAttribute("flashMessage")) {
+            model.addAttribute("flashMessage", null);
+            model.addAttribute("flashType", flashType);
+        }
 
         return "pages/catalog/index";
     }
@@ -67,6 +75,10 @@ public class CatalogViewController {
         model.addAttribute("brands", catalogService.getAllBrands());
         model.addAttribute("unitsOfMeasure", UnitOfMeasure.values());
         model.addAttribute("productId", null);
+        if (!model.containsAttribute("flashMessage")) {
+            model.addAttribute("flashMessage", null);
+            model.addAttribute("flashType", "is-success");
+        }
         return "pages/catalog/product_form";
     }
 
@@ -80,6 +92,40 @@ public class CatalogViewController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/catalog/new";
         }
+    }
+
+    @PostMapping("/categories")
+    public String createCategory(
+            @ModelAttribute CategoryRequest request,
+            @RequestParam(required = false, defaultValue = "/catalog") String returnTo,
+            RedirectAttributes redirectAttributes) {
+        String safeTarget = sanitizeCatalogRedirect(returnTo);
+        try {
+            var created = catalogService.createCategory(request);
+            redirectAttributes.addFlashAttribute("flashMessage", "Categoría '" + created.getName() + "' creada correctamente.");
+            redirectAttributes.addFlashAttribute("flashType", "is-success");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al crear categoría: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:" + safeTarget;
+    }
+
+    @PostMapping("/brands")
+    public String createBrand(
+            @ModelAttribute BrandRequest request,
+            @RequestParam(required = false, defaultValue = "/catalog") String returnTo,
+            RedirectAttributes redirectAttributes) {
+        String safeTarget = sanitizeCatalogRedirect(returnTo);
+        try {
+            var created = catalogService.createBrand(request);
+            redirectAttributes.addFlashAttribute("flashMessage", "Marca '" + created.getName() + "' creada correctamente.");
+            redirectAttributes.addFlashAttribute("flashType", "is-success");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al crear marca: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:" + safeTarget;
     }
 
     @GetMapping("/{id}")
@@ -117,6 +163,10 @@ public class CatalogViewController {
         model.addAttribute("categories", catalogService.getAllCategories());
         model.addAttribute("brands", catalogService.getAllBrands());
         model.addAttribute("unitsOfMeasure", UnitOfMeasure.values());
+        if (!model.containsAttribute("flashMessage")) {
+            model.addAttribute("flashMessage", null);
+            model.addAttribute("flashType", "is-success");
+        }
 
         return "pages/catalog/product_form";
     }
@@ -134,5 +184,12 @@ public class CatalogViewController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/catalog/" + id + "/edit";
         }
+    }
+
+    private String sanitizeCatalogRedirect(String returnTo) {
+        if (returnTo != null && returnTo.startsWith("/catalog") && !returnTo.contains("//")) {
+            return returnTo;
+        }
+        return "/catalog";
     }
 }

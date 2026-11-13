@@ -21,7 +21,9 @@ import cl.diego.NanoStock.inventory.dto.LocationRequest;
 import cl.diego.NanoStock.inventory.dto.LocationResponse;
 import cl.diego.NanoStock.inventory.dto.ProductStockOverview;
 import cl.diego.NanoStock.inventory.dto.RegisterWasteRequest;
+import cl.diego.NanoStock.inventory.dto.StockAdjustmentRequest;
 import cl.diego.NanoStock.inventory.dto.StockBatchResponse;
+import cl.diego.NanoStock.inventory.dto.TransferBatchRequest;
 import cl.diego.NanoStock.inventory.model.StorageType;
 import cl.diego.NanoStock.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -175,6 +177,38 @@ public class InventoryViewController {
             redirectAttributes.addFlashAttribute("flashMessage", "Merma registrada y dada de baja del inventario.");
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("flashMessage", "Error al registrar merma: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:/inventory";
+    }
+
+    @PostMapping("/stock/reconcile")
+    public String reconcileStock(
+            @ModelAttribute StockAdjustmentRequest request,
+            Principal principal,
+            RedirectAttributes redirectAttributes) {
+        try {
+            String username = (principal != null) ? principal.getName() : "Familia";
+            inventoryService.reconcileStock(request, username);
+            redirectAttributes.addFlashAttribute("flashMessage", "Ajuste físico de inventario aplicado correctamente.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al conciliar inventario: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:/inventory";
+    }
+
+    @PostMapping("/stock/transfer")
+    public String transferBatch(
+            @ModelAttribute TransferBatchRequest request,
+            Principal principal,
+            RedirectAttributes redirectAttributes) {
+        try {
+            String username = (principal != null) ? principal.getName() : "Familia";
+            inventoryService.transferBatch(request, username);
+            redirectAttributes.addFlashAttribute("flashMessage", "Lote trasladado de ubicación correctamente.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al trasladar lote: " + ex.getMessage());
             redirectAttributes.addFlashAttribute("flashType", "is-danger");
         }
         return "redirect:/inventory";

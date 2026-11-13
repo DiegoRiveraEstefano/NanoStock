@@ -170,7 +170,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="tag is-small ${batch.getSealedStatus() != null && batch.getSealedStatus().name().equals("OPENED") ? "is-warning" : "is-success is-light"}">
+                                        <span class="tag is-small ${batch.getSealedStatus() != null && batch.getSealedStatus().name().equals("OPEN") ? "is-warning" : "is-success is-light"}">
                                             ${batch.getSealedStatus() != null ? batch.getSealedStatus().name() : "SEALED"}
                                         </span>
                                     </td>

@@ -36,6 +36,12 @@
                     <button class="button is-danger is-light" onclick="document.getElementById('modal-waste').open()">
                         <span>🗑️</span> <span class="ml-1">Dar de Baja (Merma)</span>
                     </button>
+                    <button class="button is-info is-light" onclick="document.getElementById('modal-reconcile').open()">
+                        <span>⚖️</span> <span class="ml-1">Ajuste Físico</span>
+                    </button>
+                    <button class="button is-link is-light" onclick="document.getElementById('modal-transfer').open()">
+                        <span>🔀</span> <span class="ml-1">Mover Lote</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -78,7 +84,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <span class="tag is-small ${exp.getSealedStatus() != null && exp.getSealedStatus().name().equals("OPENED") ? "is-warning" : "is-success is-light"}">
+                                            <span class="tag is-small ${exp.getSealedStatus() != null && exp.getSealedStatus().name().equals("OPEN") ? "is-warning" : "is-success is-light"}">
                                                 ${exp.getSealedStatus() != null ? exp.getSealedStatus().name() : "SEALED"}
                                             </span>
                                         </td>
@@ -229,7 +235,7 @@
                                 <div class="select is-fullwidth">
                                     <select name="sealedStatus">
                                         <option value="SEALED">Cerrado (Sellado)</option>
-                                        <option value="OPENED">Abierto</option>
+                                        <option value="OPEN">Abierto</option>
                                     </select>
                                 </div>
                             </div>
@@ -345,6 +351,116 @@
             </form>
             <div slot="footer">
                 <button type="submit" form="form-waste" class="button is-danger">Confirmar Merma</button>
+                <button type="button" class="button" data-close>Cancelar</button>
+            </div>
+        </nano-modal>
+
+        <!-- MODAL: Ajuste Físico / Toma de Inventario -->
+        <nano-modal id="modal-reconcile" title="Ajuste Físico / Toma de Inventario">
+            <form id="form-reconcile" action="/inventory/stock/reconcile" method="post">
+                <div class="field">
+                    <label class="label">Producto <span class="has-text-danger">*</span></label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select name="productId" required>
+                                <option value="">-- Selecciona un Producto --</option>
+                                @for(ProductResponse pr : allProducts)
+                                    <option value="${pr.getId()}">${pr.getName()} (${pr.getBarCode()})</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Ubicación Auditada <span class="has-text-danger">*</span></label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select name="locationId" required>
+                                <option value="">-- Selecciona la Ubicación --</option>
+                                @for(LocationResponse loc : locations)
+                                    <option value="${loc.getId()}">${loc.getName()} (${loc.getStorageType()})</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Cantidad Real Contada <span class="has-text-danger">*</span></label>
+                    <div class="control">
+                        <input class="input" type="number" step="0.1" min="0" name="actualQuantity" placeholder="0.0" required>
+                    </div>
+                    <p class="help">El sistema calculará automáticamente la diferencia contra el stock actual en esa ubicación y registrará un ajuste.</p>
+                </div>
+
+                <div class="field">
+                    <label class="label">Motivo / Observaciones</label>
+                    <div class="control">
+                        <input class="input" type="text" name="notes" placeholder="Ej. Conteo físico semanal de despensa">
+                    </div>
+                </div>
+            </form>
+            <div slot="footer">
+                <button type="submit" form="form-reconcile" class="button is-info">Aplicar Ajuste</button>
+                <button type="button" class="button" data-close>Cancelar</button>
+            </div>
+        </nano-modal>
+
+        <!-- MODAL: Mover Lote entre Ubicaciones -->
+        <nano-modal id="modal-transfer" title="Mover Lote entre Ubicaciones">
+            <form id="form-transfer" action="/inventory/stock/transfer" method="post">
+                <div class="field">
+                    <label class="label">Lote de Origen <span class="has-text-danger">*</span></label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select name="batchId" required>
+                                <option value="">-- Selecciona el Lote a Trasladar --</option>
+                                @for(ProductStockOverview ov : stockOverviews)
+                                    @if(ov.getActiveBatches() != null)
+                                        @for(StockBatchResponse b : ov.getActiveBatches())
+                                            <option value="${b.getId()}">
+                                                ${b.getProductName()} - ${b.getLocationName()} (${b.getQuantity()} disp. | Vence: ${b.getExpirationDate() != null ? b.getExpirationDate().toString() : "S/F"})
+                                            </option>
+                                        @endfor
+                                    @endif
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Ubicación de Destino <span class="has-text-danger">*</span></label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select name="targetLocationId" required>
+                                <option value="">-- Selecciona Ubicación Destino --</option>
+                                @for(LocationResponse loc : locations)
+                                    <option value="${loc.getId()}">${loc.getName()} (${loc.getStorageType()})</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Cantidad a Trasladar <span class="has-text-danger">*</span></label>
+                    <div class="control">
+                        <input class="input" type="number" step="0.1" min="0.1" name="quantity" placeholder="1.0" required>
+                    </div>
+                    <p class="help">Puedes mover la totalidad o solo una parte del lote conservando su fecha de caducidad.</p>
+                </div>
+
+                <div class="field">
+                    <label class="label">Notas del Traslado</label>
+                    <div class="control">
+                        <input class="input" type="text" name="notes" placeholder="Ej. Pasar de congelador a refrigerador para descongelar">
+                    </div>
+                </div>
+            </form>
+            <div slot="footer">
+                <button type="submit" form="form-transfer" class="button is-link">Confirmar Traslado</button>
                 <button type="button" class="button" data-close>Cancelar</button>
             </div>
         </nano-modal>

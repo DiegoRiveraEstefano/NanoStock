@@ -1,9 +1,11 @@
 @import java.util.List
 @import cl.diego.NanoStock.catalog.dto.ProductResponse
 @import cl.diego.NanoStock.catalog.dto.CategoryResponse
+@import cl.diego.NanoStock.catalog.dto.BrandResponse
 
 @param List<ProductResponse> products
 @param List<CategoryResponse> categories
+@param List<BrandResponse> brands = List.of()
 @param Long selectedCategory = null
 @param String query = ""
 @param String flashMessage = null
@@ -22,6 +24,10 @@
             </div>
             <div class="level-right">
                 <div class="buttons">
+                    <button type="button" class="button is-light" onclick="document.getElementById('modal-catalog-meta').open()">
+                        <span>🏷️</span>
+                        <span class="ml-1">Categorías y Marcas</span>
+                    </button>
                     <nano-barcode-scanner target-input="#filterSearch" button-text="Buscar por Escáner"></nano-barcode-scanner>
                     <a href="/catalog/new" class="button is-primary">
                         <span>➕</span>
@@ -32,7 +38,7 @@
         </div>
 
         @if(flashMessage != null)
-            @template.components.alert(message = flashMessage, type = flashType, icon = "✅")
+            @template.components.alert(message = flashMessage, type = flashType, icon = flashType.equals("is-danger") ? "⚠️" : "✅")
         @endif
 
         <!-- Filtros y Búsqueda -->
@@ -143,6 +149,53 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- MODAL: Gestión de Categorías y Marcas -->
+        <nano-modal id="modal-catalog-meta" title="Categorías y Marcas del Catálogo">
+            <div class="columns">
+                <div class="column is-6">
+                    <h3 class="title is-6 mb-2">📂 Nueva Categoría</h3>
+                    <form action="/catalog/categories" method="post" class="mb-3">
+                        <input type="hidden" name="returnTo" value="/catalog">
+                        <div class="field">
+                            <input class="input is-small" type="text" name="name" placeholder="Nombre (Ej. Despensa)" required>
+                        </div>
+                        <div class="field">
+                            <input class="input is-small" type="text" name="description" placeholder="Descripción (opcional)">
+                        </div>
+                        <button type="submit" class="button is-small is-primary is-fullwidth">Crear Categoría</button>
+                    </form>
+                    <p class="is-size-7 has-text-grey mb-1">Existentes (${categories.size()}):</p>
+                    <div class="tags">
+                        @for(CategoryResponse cat : categories)
+                            <span class="tag is-info is-light">${cat.getName()}</span>
+                        @endfor
+                    </div>
+                </div>
+
+                <div class="column is-6">
+                    <h3 class="title is-6 mb-2">🔖 Nueva Marca</h3>
+                    <form action="/catalog/brands" method="post" class="mb-3">
+                        <input type="hidden" name="returnTo" value="/catalog">
+                        <div class="field">
+                            <input class="input is-small" type="text" name="name" placeholder="Nombre (Ej. Colun)" required>
+                        </div>
+                        <button type="submit" class="button is-small is-info is-fullwidth">Crear Marca</button>
+                    </form>
+                    <p class="is-size-7 has-text-grey mb-1">Existentes (${brands != null ? brands.size() : 0}):</p>
+                    <div class="tags">
+                        @if(brands != null)
+                            @for(BrandResponse brand : brands)
+                                <span class="tag is-light">${brand.getName()}</span>
+                            @endfor
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div slot="footer">
+                <button type="button" class="button" data-close>Cerrar</button>
+            </div>
+        </nano-modal>
     `,
     scripts = @`
         <script type="module" src="/js/components/nano-barcode-scanner.js"></script>

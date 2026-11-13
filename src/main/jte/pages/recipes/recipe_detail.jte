@@ -34,6 +34,17 @@
             </div>
             <div class="level-right">
                 <div class="buttons">
+                    <a href="/recipes/${recipe.getId()}/edit" class="button is-light">
+                        <span>✏️</span> <span class="ml-1">Editar</span>
+                    </a>
+
+                    <form action="/recipes/${recipe.getId()}/delete" method="post" class="is-inline"
+                          onsubmit="return confirm('¿Eliminar esta receta del recetario?');">
+                        <button type="submit" class="button is-danger is-light" title="Eliminar receta">
+                            <span>🗑️</span>
+                        </button>
+                    </form>
+
                     <form action="/recipes/${recipe.getId()}/add-missing-to-cart" method="post" class="is-inline">
                         <input type="hidden" name="targetPortions" value="${recipe.getServings()}">
                         <button type="submit" class="button is-info is-light" title="Enviar faltantes al carrito">

@@ -14,7 +14,7 @@
             <div class="level-left">
                 <div>
                     <h1 class="title is-4 mb-1">Bitácora de Auditoría de Movimientos</h1>
-                    <p class="subtitle is-6 has-text-grey">Registro inmutable de entradas, consumos, mermas y ajustes de stock.</p>
+                    <p class="subtitle is-6 has-text-grey">Registro inmutable de entradas, consumos, mermas, traslados y ajustes de stock.</p>
                 </div>
             </div>
             <div class="level-right">
@@ -87,6 +87,8 @@
                                             <span class="tag is-info is-light is-rounded">🍽️ Consumo</span>
                                         @elseif(m.getMovementType().name().equals("WASTE"))
                                             <span class="tag is-danger is-light is-rounded">🗑️ Merma</span>
+                                        @elseif(m.getMovementType().name().equals("TRANSFER"))
+                                            <span class="tag is-link is-light is-rounded">🔀 Traslado</span>
                                         @else
                                             <span class="tag is-warning is-light is-rounded">⚖️ Ajuste</span>
                                         @endif
