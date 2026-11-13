@@ -1,5 +1,7 @@
 package cl.diego.NanoStock.ui;
 
+import java.security.Principal;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,8 +12,6 @@ import cl.diego.NanoStock.notifications.service.NotificationService;
 import cl.diego.NanoStock.purchases.service.ShoppingListService;
 import lombok.RequiredArgsConstructor;
 
-import java.security.Principal;
-
 @Controller
 @RequiredArgsConstructor
 public class DashboardViewController {
@@ -21,7 +21,7 @@ public class DashboardViewController {
     private final NotificationService notificationService;
     private final ShoppingListService shoppingListService;
 
-    @GetMapping({"/", "/dashboard"})
+    @GetMapping("/dashboard")
     public String dashboard(Model model, Principal principal) {
         String username = (principal != null) ? principal.getName() : "Familia";
 

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,9 +17,12 @@ import cl.diego.NanoStock.catalog.service.ProductCatalogService;
 import cl.diego.NanoStock.inventory.dto.AddStockBatchRequest;
 import cl.diego.NanoStock.inventory.dto.ConsumeStockRequest;
 import cl.diego.NanoStock.inventory.dto.InventoryMovementResponse;
+import cl.diego.NanoStock.inventory.dto.LocationRequest;
+import cl.diego.NanoStock.inventory.dto.LocationResponse;
 import cl.diego.NanoStock.inventory.dto.ProductStockOverview;
 import cl.diego.NanoStock.inventory.dto.RegisterWasteRequest;
 import cl.diego.NanoStock.inventory.dto.StockBatchResponse;
+import cl.diego.NanoStock.inventory.model.StorageType;
 import cl.diego.NanoStock.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 
@@ -43,10 +47,89 @@ public class InventoryViewController {
         model.addAttribute("locations", inventoryService.getAllLocations());
         model.addAttribute("allProducts", catalogService.getAllProducts());
         model.addAttribute("expiringBatches", expiringBatches);
-        model.addAttribute("flashMessage", flashMessage);
-        model.addAttribute("flashType", flashType);
+        if (flashMessage != null) {
+            model.addAttribute("flashMessage", flashMessage);
+            model.addAttribute("flashType", flashType);
+        } else if (!model.containsAttribute("flashMessage")) {
+            model.addAttribute("flashMessage", null);
+            model.addAttribute("flashType", flashType);
+        }
 
         return "pages/inventory/index";
+    }
+
+    @GetMapping("/locations")
+    public String listLocations(
+            @RequestParam(required = false) Long locationId,
+            @RequestParam(required = false) String flashMessage,
+            @RequestParam(required = false, defaultValue = "is-success") String flashType,
+            Model model) {
+
+        List<LocationResponse> locations = inventoryService.getAllLocations();
+        model.addAttribute("locations", locations);
+        model.addAttribute("storageTypes", StorageType.values());
+
+        if (locationId != null) {
+            inventoryService.getLocationById(locationId).ifPresent(selected -> {
+                model.addAttribute("selectedLocation", selected);
+                model.addAttribute("locationBatches", inventoryService.getActiveBatchesByLocation(locationId));
+            });
+        }
+
+        if (flashMessage != null) {
+            model.addAttribute("flashMessage", flashMessage);
+            model.addAttribute("flashType", flashType);
+        } else if (!model.containsAttribute("flashMessage")) {
+            model.addAttribute("flashMessage", null);
+            model.addAttribute("flashType", flashType);
+        }
+
+        return "pages/inventory/locations";
+    }
+
+    @PostMapping("/locations")
+    public String createLocation(
+            @ModelAttribute LocationRequest request,
+            RedirectAttributes redirectAttributes) {
+        try {
+            LocationResponse created = inventoryService.createLocation(request);
+            redirectAttributes.addFlashAttribute("flashMessage",
+                "Ubicación '" + created.getName() + "' registrada correctamente.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al registrar ubicación: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:/inventory/locations";
+    }
+
+    @PostMapping("/locations/{id}/update")
+    public String updateLocation(
+            @PathVariable Long id,
+            @ModelAttribute LocationRequest request,
+            RedirectAttributes redirectAttributes) {
+        try {
+            LocationResponse updated = inventoryService.updateLocation(id, request);
+            redirectAttributes.addFlashAttribute("flashMessage",
+                "Ubicación '" + updated.getName() + "' actualizada correctamente.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al actualizar ubicación: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:/inventory/locations";
+    }
+
+    @PostMapping("/locations/{id}/delete")
+    public String deleteLocation(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            inventoryService.deleteLocation(id);
+            redirectAttributes.addFlashAttribute("flashMessage", "Ubicación eliminada correctamente.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("flashMessage", "Error al eliminar ubicación: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("flashType", "is-danger");
+        }
+        return "redirect:/inventory/locations";
     }
 
     @PostMapping("/stock/entry")
